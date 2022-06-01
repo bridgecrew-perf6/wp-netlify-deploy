@@ -2,6 +2,7 @@
     "name": "wearefar/wp-netlify-deploy",
     "description": "Trigger Netlify deploys form the WordPress admin",
     "license": "MIT",
+    "type": "wordpress-plugin",
     "autoload": {
         "psr-4": {
             "Wearefar\\WpNetlifyDeploy\\": "src/"

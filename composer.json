@@ -1,0 +1,21 @@
+{
+    "name": "wearefar/wp-netlify-deploy",
+    "description": "Trigger Netlify deploys form the WordPress admin",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Wearefar\\WpNetlifyDeploy\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Victor Guerrero",
+            "email": "victorg@hey.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.2",
+        "nesbot/carbon": "^2.58",
+        "symfony/http-foundation": "^5.4"
+    }
+}

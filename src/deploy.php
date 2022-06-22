@@ -2,12 +2,13 @@
 
 namespace WeAreFar\WPNetlify;
 
+use Carbon\Carbon;
 use Exception;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Symfony\Component\HttpFoundation\Request;
 use WP_Error;
 use WP_REST_Server;
-use Firebase\JWT\JWT;
-use Symfony\Component\HttpFoundation\Request;
-use Carbon\Carbon;
 
 class Deploy
 {
@@ -15,6 +16,7 @@ class Deploy
     {
         add_action('wp_dashboard_setup', array($this, 'addDashboardWidget'));
         add_action('admin_menu', array($this, 'registerSubmenu'));
+        add_action('admin_enqueue_scripts', [$this, 'enqueueAdminScripts']);
         add_action('rest_api_init', array($this, 'registerRestRoutes'));
         register_activation_hook($file, array($this, 'createDeploysTable'));
     }
@@ -32,7 +34,11 @@ class Deploy
     {
         $url = admin_url('admin.php?page=deploy');
         ?>
-        <a href="<?php echo $url; ?>" class="button button-primary">Manage</a>
+        <form method="POST" action="<?= $url ?>" style="display: inline;">
+            <?php wp_nonce_field('deploy', 'deploy_nonce'); ?>
+            <button class="button button-primary" name="action" value="deploy">Deploy now</button>
+        </form>
+        <a href="<?= $url; ?>" class="button">View deploy log</a>
         <?php
     }
 
@@ -48,11 +54,16 @@ class Deploy
         );
     }
 
+    public function enqueueAdminScripts()
+    {
+        wp_enqueue_style('wp-netlify-deploys', plugin_dir_url(__FILE__).'style.css');
+    }
+
     public function deployPageOutput()
     {
         ?>
         <div class="wrap">
-            <h1>Deploys</h1>
+            <h1>Netlify deploys</h1>
         <?php
         if (isset($_REQUEST['action'])) {
             if (!isset($_REQUEST['deploy_nonce']) || wp_verify_nonce($_REQUEST['deploy_nonce'], 'deploy_nonce')) {
@@ -91,12 +102,14 @@ class Deploy
         <div class="deploys-table">
             <div class="deploys-toolbar">
                 <div>
-                    <h2>Activity log</h2>
+                    <h2>Deploy log</h2>
                 </div>
                 <div class="deploys-buttons">
                     <form method="POST">
                         <?php wp_nonce_field('deploy', 'deploy_nonce'); ?>
-                        <button class="button" name="action" value="preview">Make preview</button>
+                        <?php if ($_ENV['NETLIFY_PREVIEW_HOOK']) : ?>
+                            <button class="button" name="action" value="preview">Make preview</button>
+                        <?php endif ?>
                         <button class="button button-primary" name="action" value="deploy">Trigger deploy</button>
                     </form>
                 </div>
@@ -126,6 +139,8 @@ class Deploy
                     $deploy->deploy_time ? sprintf('Deployed in %d minutes', (int) $deploy->deploy_time / 60) : null
                 );
             }
+        } else {
+            echo 'No deploys yet...';
         }
         ?>
         </div>
@@ -175,7 +190,7 @@ class Deploy
             'published_at' => $body->published_at,
             'context' => $body->context,
             'deploy_time' => $body->deploy_time,
-            'summary' => (array) $body->summary,
+            // 'summary' => (array) $body->summary,
             'screenshot_url' => $body->screenshot_url
         ];
 
@@ -191,16 +206,19 @@ class Deploy
         $signature = $request->headers->get('X-Webhook-Signature');
 
         if (!$signature) {
+            error_log('No webhook signature');
             return false;
         }
 
         try {
-            $decoded = JWT::decode($signature, $_ENV['NETLIFY_JWS_TOKEN'], array('HS256'));
+            $decoded = JWT::decode($signature, new Key($_ENV['NETLIFY_JWS_TOKEN'], 'HS256'));
         } catch (Exception $e) {
+            error_log($e->getMessage());
             return false;
         }
 
         if ($decoded->sha256 != hash('sha256', $body)) {
+            error_log("Hashes don't match");
             return false;
         }
 
@@ -227,12 +245,12 @@ class Deploy
             admin_url varchar(255) NOT NULL,
             deploy_url varchar(255) NOT NULL,
             deploy_ssl_url varchar(255) NOT NULL,
-            created_at timestamp,
-            updated_at timestamp,
+            created_at timestamp DEFAULT NULL,
+            updated_at timestamp DEFAULT NULL,
             user_id varchar(24) NOT NULL,
             error_message text,
             branch varchar(255),
-            published_at timestamp,
+            published_at timestamp DEFAULT NULL,
             context varchar(255),
             deploy_time int UNSIGNED,
             summary longtext,

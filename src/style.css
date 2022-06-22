@@ -1,0 +1,86 @@
+.deploys-table {
+  margin:20px 0 0;
+  background:#fff;
+  border-radius:4px;
+  box-shadow:0 2px 4px 0 rgba(14,30,37,.12)
+}
+
+.deploys-toolbar {
+  padding:20px;
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-pack:justify;
+  justify-content:space-between;
+  -ms-flex-align:center;
+  align-items:center
+}
+
+.deploys-toolbar h2 {
+  margin:0;
+  font-weight:400;
+  font-size:18px
+}
+
+.deploys-list {
+  margin:0;
+}
+
+.deploys-list li{
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-pack:justify;
+  justify-content:space-between;
+  -ms-flex-align:center;
+  align-items:center;
+  padding:10px 20px;
+  margin:0}
+
+.deploys-list li:nth-child(2n) {
+  background-color:rgba(14,30,37,.04)
+}
+
+.deploys-list p {
+  margin:0;
+  line-height:1.8
+}
+
+.deploys-list .meta {
+  color:rgba(14,30,37,.5)
+}
+.deploys-list .fit {
+  text-align:right
+}
+.deploys-list a {
+  text-decoration:none;
+  font-weight:700;
+  color:#000
+}
+
+.deploys-list a:hover {
+  text-decoration:underline
+}
+
+.badge{
+  display:inline-block;
+  text-transform:uppercase;
+  font-weight:700;
+  font-size:11px;
+  padding:2px 4px;
+  color:rgba(14,30,37,.87);
+  background:rgba(14,30,37,.05)
+}
+
+.badge.badge-ready{
+  background-color:rgba(0,173,159,.06);
+  color:#00ad9f
+}
+
+.badge.badge-building{
+  background-color:rgba(219,168,0,.06);
+  color:#dba800
+}
+
+.badge.badge-error{
+  background-color:rgba(250,57,70,.06);
+  color:#fa3946
+}
